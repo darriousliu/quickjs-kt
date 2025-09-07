@@ -68,3 +68,13 @@ afterEvaluate {
         enabled = false
     }
 }
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/darriousliu/quickjs-kt")
+            credentials(PasswordCredentials::class)
+        }
+    }
+}
