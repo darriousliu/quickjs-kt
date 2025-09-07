@@ -5,19 +5,21 @@ import com.dokar.quickjs.binding.asyncFunction
 import com.dokar.quickjs.binding.function
 import com.dokar.quickjs.binding.toJsObject
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareRequest
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.request
 import io.ktor.http.HttpMethod
 import io.ktor.util.toMap
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.read
-import io.ktor.utils.io.readUntilDelimiter
+import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readUntil
 import io.ktor.utils.io.skipDelimiter
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +27,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.io.bytestring.getByteString
+import kotlinx.io.readByteArray
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import quickjs_kt.samples.openai.generated.resources.Res
 import java.nio.ByteBuffer
@@ -80,7 +84,7 @@ internal suspend fun QuickJs.defineFetch(coroutineScope: CoroutineScope): Cleanu
         val job = coroutineScope.launch {
             statement.execute { res ->
                 responseDeferred.complete(res)
-                val channel = res.body<ByteReadChannel>()
+                val channel = res.bodyAsChannel()
                 val externalChannel = Channel<ByteArray?>(capacity = 100)
                 channelDeferred.complete(externalChannel)
                 readStreamBody(res, channel, externalChannel)
@@ -135,9 +139,11 @@ private suspend fun readStreamBody(
     val contentType = response.headers["Content-Type"]
     if (contentType == "text/event-stream") {
         val buffer = ByteBuffer.allocate(4096)
+        val writeChannel = ByteChannel()
         while (true) {
             buffer.clear()
-            val readCount = channel.readUntilDelimiter(sseDelimiter, buffer)
+            val readCount = channel.readUntil(sseDelimiter.getByteString(), writeChannel).toInt()
+            buffer.put(writeChannel.readRemaining().readByteArray())
             if (readCount < 0) {
                 externalChannel.send(null)
                 break

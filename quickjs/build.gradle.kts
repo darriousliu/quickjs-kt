@@ -69,6 +69,7 @@ kotlin {
                         file("native/common/quickjs_version.h"),
                     )
                     packageName("quickjs")
+                    compilerOpts.addAll(listOf("-Wno-int-conversion", "-Wno-incompatible-pointer-types"))
                 }
             }
         }
@@ -80,6 +81,7 @@ val cmakeFile = file("native/CMakeLists.txt")
 android {
     namespace = "com.dokar.quickjs"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+    ndkVersion = "28.1.13356709"
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

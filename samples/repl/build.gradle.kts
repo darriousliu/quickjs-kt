@@ -1,15 +1,12 @@
 import com.dokar.quickjs.disableUnsupportedPlatformTasks
 
 plugins {
-    id("application")
     alias(libs.plugins.kotlinMultiplatform)
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 kotlin {
-    jvm {
-        withJava()
-    }
+    jvm()
 
     mingwX64 {
         binaries {
@@ -42,10 +39,6 @@ kotlin {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
-}
-
-application {
-    mainClass.set("ReplMainKt")
 }
 
 disableUnsupportedPlatformTasks()
