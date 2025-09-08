@@ -46,16 +46,16 @@ kotlin {
             dependsOn(commonMain)
         }
 
-        val jvmMain by getting {
+        jvmMain {
             dependsOn(jniMain)
         }
 
-        val jvmTest by getting {
+        jvmTest {
             dependsOn(commonTest.get())
             kotlin.srcDir("src/jniTest/kotlin/")
         }
 
-        val androidMain by getting {
+        androidMain {
             dependsOn(jniMain)
         }
 
@@ -69,7 +69,12 @@ kotlin {
                         file("native/common/quickjs_version.h"),
                     )
                     packageName("quickjs")
-                    compilerOpts.addAll(listOf("-Wno-int-conversion", "-Wno-incompatible-pointer-types"))
+                    compilerOpts.addAll(
+                        listOf(
+                            "-Wno-int-conversion",
+                            "-Wno-incompatible-pointer-types"
+                        )
+                    )
                 }
             }
         }
@@ -111,7 +116,7 @@ android {
     }
 
     buildTypes {
-        val release by getting {
+        release {
             externalNativeBuild {
                 cmake {
                     arguments("-DCMAKE_BUILD_TYPE=MinSizeRel")
@@ -126,7 +131,7 @@ android {
             }
         }
 
-        val debug by getting {
+        debug {
             externalNativeBuild {
                 cmake {
                     cFlags("-g", "-DDEBUG", "-DDUMP_LEAKS")
