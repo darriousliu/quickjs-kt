@@ -71,11 +71,9 @@ internal fun Project.buildQuickJsNativeLibrary(
     }
 
     fun runCommand(vararg args: Any) {
-        exec {
+        providers.exec {
             environment("PATH", System.getenv("PATH"))
             workingDir = cmakeFile.parentFile
-            standardOutput = System.out
-            errorOutput = System.err
             commandLine(*args)
         }
     }
